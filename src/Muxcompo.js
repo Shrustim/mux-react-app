@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { w3cwebsocket as W3CWebSocket } from "websocket";
 
 const CAMERA_CONSTRAINTS = {
   audio: true,
@@ -69,10 +70,10 @@ export default () => {
     setStreaming(true);
 
     const protocol = window.location.protocol.replace('http', 'ws');
-    wsRef.current = new WebSocket(
-      `http://localhost:3000/rtmp?key=${streamKey}`
+    wsRef.current = new W3CWebSocket(
+      `${protocol}//localhost:8080/rtmp?key=${streamKey}`
     );
-
+   
     wsRef.current.addEventListener('open', function open() {
       setConnected(true);
     });
