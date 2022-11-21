@@ -1,18 +1,36 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { w3cwebsocket as W3CWebSocket } from "websocket";
+// import { w3cwebsocket as W3CWebSocket } from "websocket";
+import socketIOClient from "socket.io-client";
 
 const CAMERA_CONSTRAINTS = {
   audio: true,
   video: { width: 960, height: 540 }
 };
 
-export default () => {
+export default (props) => {
+  const socket = props.socket
   const [connected, setConnected] = useState(false);
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [streamKey, setStreamKey] = useState(null);
   const [shoutOut, setShoutOut] = useState('you');
+  // const [socket, setSocket] = useState();
 
+const ENDPOINT = "http://localhost:8080/";
+//   useEffect(() => {
+//     const sockett = socketIOClient(ENDPOINT, { transports : ['websocket'] });
+//     console.log("socket",sockett)
+
+//     setSocket(socket)
+  
+//     ffmpegpass
+//   }, []);
+// useEffect(() => {
+//     if(socket){
+
+//     }
+//     ffmpegpass
+//   });
   const inputStreamRef = useRef();
   const videoRef = useRef();
   const canvasRef = useRef();
@@ -58,7 +76,12 @@ export default () => {
     ctx.font = '50px monospace';
     ctx.fillText(`Oh hi, ${nameRef.current}`, 5, 50);
 
+
+
     requestAnimationRef.current = requestAnimationFrame(updateCanvas);
+
+
+   
   };
 
   const stopStreaming = () => {
@@ -66,28 +89,34 @@ export default () => {
     setStreaming(false);
   };
 
-  const startStreaming = () => {
+
+  const startStreaming = async() => {
     setStreaming(true);
-
-    const protocol = window.location.protocol.replace('http', 'ws');
-    wsRef.current = new W3CWebSocket(
-      `${protocol}//localhost:8080/rtmp?key=${streamKey}`
-    );
-   
-    wsRef.current.addEventListener('open', function open() {
+// const socket = await socketIOClient(ENDPOINT, { transports : ['websocket'] });
+    await socket.emit("startStreaming", { "key": streamKey });
       setConnected(true);
-    });
+var ffmp;
+   await  socket.on("ffmpegpass",function(data){
+    console.log("data----------",data)
+ 
+     });
+    // wsRef.current = new W3CWebSocket(
+    //   `${protocol}//localhost:8080/rtmp?key=${streamKey}`
+    // );
+    // wsRef.current = io(`${protocol}//localhost:8080/rtmp?key=${streamKey}`);
+   
+    // wsRef.current.addEventListener('open', function open() {
+    //   setConnected(true);
+    // });
 
-    wsRef.current.addEventListener('close', () => {
-      setConnected(false);
-      stopStreaming();
-    });
+    // wsRef.current.addEventListener('close', () => {
+    //   setConnected(false);
+    //   stopStreaming();
+    // });
 
     const videoOutputStream = canvasRef.current.captureStream(30); // 30 FPS
 
-    // Let's do some extra work to get audio to join the party.
-    // https://hacks.mozilla.org/2016/04/record-almost-everything-in-the-browser-with-mediarecorder/
-    const audioStream = new MediaStream();
+   const audioStream = new MediaStream();
     const audioTracks = inputStreamRef.current.getAudioTracks();
     audioTracks.forEach(function(track) {
       audioStream.addTrack(track);
@@ -107,16 +136,20 @@ export default () => {
     });
 
     mediaRecorderRef.current.addEventListener('dataavailable', e => {
-      wsRef.current.send(e.data);
+      socket.emit("passDatatoStreaming", {'data':e.data,'ffmpeg':"","streamKey":streamKey});
     });
 
     mediaRecorderRef.current.addEventListener('stop', () => {
       stopStreaming();
-      wsRef.current.close();
+      // wsRef.current.close();
     });
 
     mediaRecorderRef.current.start(1000);
+    // Let's do some extra work to get audio to join the party.
+    // https://hacks.mozilla.org/2016/04/record-almost-everything-in-the-browser-with-mediarecorder/
+   
   };
+ 
 
   useEffect(() => {
     nameRef.current = shoutOut;
