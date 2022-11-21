@@ -100,19 +100,7 @@ var ffmp;
     console.log("data----------",data)
  
      });
-    // wsRef.current = new W3CWebSocket(
-    //   `${protocol}//localhost:8080/rtmp?key=${streamKey}`
-    // );
-    // wsRef.current = io(`${protocol}//localhost:8080/rtmp?key=${streamKey}`);
-   
-    // wsRef.current.addEventListener('open', function open() {
-    //   setConnected(true);
-    // });
-
-    // wsRef.current.addEventListener('close', () => {
-    //   setConnected(false);
-    //   stopStreaming();
-    // });
+  
 
     const videoOutputStream = canvasRef.current.captureStream(30); // 30 FPS
 
@@ -160,6 +148,10 @@ var ffmp;
       cancelAnimationFrame(requestAnimationRef.current);
     }
   }, []);
+
+
+
+
 
   return (
     <div style={{ maxWidth: '980px', margin: '0 auto' }}>
